@@ -2,10 +2,6 @@
 
 A plugin for editing data for Tren Urbano App
 
-## Status
-
-[![Build Status](https://travis-ci.org/matthieun/josm-geojson.svg?branch=master)](https://travis-ci.org/matthieun/josm-geojson)
-
 ## Build
 
 Download josm

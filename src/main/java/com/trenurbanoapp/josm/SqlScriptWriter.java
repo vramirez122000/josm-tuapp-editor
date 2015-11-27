@@ -9,6 +9,7 @@ import org.postgis.Point;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -19,7 +20,13 @@ public class SqlScriptWriter {
     public static final int WGS84 = 4326;
 
     public static void write(DataSet dataSet, Writer out) throws IOException {
-        for (Way way : dataSet.getWays()) {
+
+        Collection<Way> ways = dataSet.getSelectedWays();
+        if(ways.isEmpty()) {
+            ways = dataSet.getWays();
+        }
+
+        for (Way way : ways) {
             Point[] points = new Point[way.getNodes().size()];
             List<Node> nodes = way.getNodes();
             for (int i = 0, nodesSize = nodes.size(); i < nodesSize; i++) {

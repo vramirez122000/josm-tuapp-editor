@@ -43,12 +43,13 @@ public class SqlScriptExporter extends FileExporter {
         try {
             writer = new FileWriter(file);
             SqlScriptWriter.write(data, writer);
-
         } finally {
             if (writer != null) {
                 writer.close();
             }
         }
+
+        ((OsmDataLayer) layer).onPostSaveToFile();
 
 
     }

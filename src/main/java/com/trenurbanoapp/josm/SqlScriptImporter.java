@@ -19,7 +19,7 @@ import java.sql.SQLException;
  */
 public class SqlScriptImporter extends FileImporter {
 
-    private OsmDataLayer layer;
+    private TrenUrbanoAppLayer layer;
 
     /**
      * Constructs a new {@code FileImporter} with the given extension file filter.
@@ -42,7 +42,7 @@ public class SqlScriptImporter extends FileImporter {
         } catch (IOException | SQLException e) {
             throw new IllegalArgumentException("could not parse sql script", e);
         }
-        this.layer = new OsmDataLayer(data, "TUAPP: " + file.getName(), file);
+        this.layer = new TrenUrbanoAppLayer(data, "TUAPP: " + file.getName(), file);
 
         GuiHelper.runInEDT(new Runnable() {
             @Override
