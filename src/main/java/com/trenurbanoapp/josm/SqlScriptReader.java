@@ -1,9 +1,7 @@
 package com.trenurbanoapp.josm;
 
 import org.openstreetmap.josm.data.coor.LatLon;
-import org.openstreetmap.josm.data.osm.DataSet;
-import org.openstreetmap.josm.data.osm.Node;
-import org.openstreetmap.josm.data.osm.Way;
+import org.openstreetmap.josm.data.osm.*;
 import org.openstreetmap.josm.tools.Utils;
 import org.postgis.LineString;
 import org.postgis.Point;
@@ -25,52 +23,103 @@ import java.util.regex.Pattern;
 public class SqlScriptReader {
 
     public static final int WGS84 = 4326;
-    private static Pattern lineStringPattern = Pattern.compile("ST_GeomFromEWKT\\s*\\(\\s*'(SRID=4326;LINESTRING[^']*)", Pattern.CASE_INSENSITIVE);
-    private static Pattern routeIdPattern = Pattern.compile("route\\s*=\\s*'([^']*)", Pattern.CASE_INSENSITIVE);
-    private static Pattern directionPattern = Pattern.compile("direction\\s*=\\s*(?:NULL|'([^']*))", Pattern.CASE_INSENSITIVE);
 
     public static void readSubroutes(final DataSet data, File file) throws IOException, SQLException {
 
         File stopsFile = file.getParentFile().toPath().resolve("../stops.sql").toFile();
-        if(stopsFile.exists()) {
+        if (stopsFile.exists()) {
             readStops(data, stopsFile);
         }
-
 
         forEachLine(file, new LineCallback() {
             @Override
             public void doWithLine(String line) throws IOException, SQLException {
-                Matcher m = lineStringPattern.matcher(line);
-                if (m.find()) {
-                    String ewkt = m.group(1);
-                    LineString lineString = new LineString(ewkt);
-                    Way w = new Way();
-                    for (int i = 0; i < lineString.getPoints().length; i++) {
-                        Point p = lineString.getPoints()[i];
-                        Node n = new Node(new LatLon(p.getY(), p.getX()));
-                        data.addPrimitive(n);
-                        w.addNode(n);
-                    }
-
-                    Map<String, String> keys = new HashMap<>();
-                    keys.put("oneway", "yes");
-                    keys.put("highway", "primary");
-
-
-                    m = routeIdPattern.matcher(line);
-                    if (m.find()) {
-                        keys.put("route", m.group(1));
-                    }
-
-                    m = directionPattern.matcher(line);
-                    if (m.find()) {
-                        keys.put("direction", m.group(1));
-                    }
-                    w.setKeys(keys);
-                    data.addPrimitive(w);
-                }
+                readSubroute(data, line);
+                readSubrouteStopRelation(data, line);
             }
+
         });
+    }
+
+
+    private static Pattern subroutePattern = Pattern.compile("ref\\.subroute_new\\s+", Pattern.CASE_INSENSITIVE);
+    private static Pattern lineStringPattern = Pattern.compile("ST_GeomFromEWKT\\s*\\(\\s*'(SRID=4326;LINESTRING[^']*)", Pattern.CASE_INSENSITIVE);
+    private static Pattern routeIdPattern = Pattern.compile("route\\s*=\\s*'([^']*)", Pattern.CASE_INSENSITIVE);
+    private static Pattern directionPattern = Pattern.compile("direction\\s*=\\s*(?:NULL|'([^']*))", Pattern.CASE_INSENSITIVE);
+
+    private static void readSubroute(DataSet data, String line) throws SQLException {
+        Matcher m = subroutePattern.matcher(line);
+        if (!m.find()) {
+            return;
+        }
+
+        m = lineStringPattern.matcher(line);
+        if(!m.find()) {
+            throw new IllegalArgumentException("Linestring not found in: " + line);
+        }
+        String ewkt = m.group(1);
+        LineString lineString = new LineString(ewkt);
+        Way w = new Way();
+        for (int i = 0; i < lineString.getPoints().length; i++) {
+            Point p = lineString.getPoints()[i];
+            Node n = new Node(new LatLon(p.getY(), p.getX()));
+            data.addPrimitive(n);
+            w.addNode(n);
+        }
+
+        Map<String, String> keys = new HashMap<>();
+        keys.put("oneway", "yes");
+        keys.put("highway", "primary");
+
+
+        m = routeIdPattern.matcher(line);
+        if (m.find()) {
+            keys.put("route", m.group(1));
+        }
+
+        m = directionPattern.matcher(line);
+        if (m.find()) {
+            keys.put("direction", m.group(1));
+        }
+        w.setKeys(keys);
+        data.addPrimitive(w);
+    }
+
+    private static Pattern relationPattern = Pattern.compile("ref\\.subroute_stop");
+    private static Pattern relationValuesPattern = Pattern.compile("\\((\\s*[0-9]+\\s*,[^\\)]+)\\)");
+    private static void readSubrouteStopRelation(DataSet data, String line) throws SQLException {
+        Matcher m = relationPattern.matcher(line);
+        if (!m.find()) {
+            return;
+        }
+
+        Map<String, String> keys = new HashMap<>();
+        m = routeIdPattern.matcher(line);
+        if (m.find()) {
+            keys.put("route", m.group(1));
+        } else {
+            return;
+        }
+
+        m = directionPattern.matcher(line);
+        if (m.find()) {
+            keys.put("direction", m.group(1));
+        } else {
+            keys.put("direction", "");
+        }
+
+        Relation rel = new Relation();
+        m = relationValuesPattern.matcher(line);
+        while(m.find()) {
+            String[] valArray = m.group(1).split(",");
+            long stopGid = Long.parseLong(valArray[0].trim());
+            Integer stopOrder = Integer.parseInt(valArray[1].trim());
+            RelationMember member = new RelationMember(String.valueOf(stopOrder), data.getPrimitiveById(stopGid, OsmPrimitiveType.NODE));
+            rel.addMember(stopOrder, member);
+        }
+
+        rel.setKeys(keys);
+        data.addPrimitive(rel);
     }
 
     private static Pattern pointPattern = Pattern.compile("ST_GeomFromEWKT\\s*\\(\\s*'(SRID=4326;POINT[^']*)", Pattern.CASE_INSENSITIVE);
@@ -128,7 +177,7 @@ public class SqlScriptReader {
     }
 
     public static void forEachLine(File file, LineCallback callback) {
-        try(BufferedReader reader = Files.newBufferedReader(file.toPath(), Charset.forName("UTF-8"))) {
+        try (BufferedReader reader = Files.newBufferedReader(file.toPath(), Charset.forName("UTF-8"))) {
 
             String line;
             while ((line = reader.readLine()) != null) {
