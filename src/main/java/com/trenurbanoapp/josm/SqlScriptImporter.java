@@ -2,7 +2,6 @@ package com.trenurbanoapp.josm;
 
 import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.data.osm.DataSet;
-import org.openstreetmap.josm.gui.layer.OsmDataLayer;
 import org.openstreetmap.josm.gui.progress.ProgressMonitor;
 import org.openstreetmap.josm.gui.util.GuiHelper;
 import org.openstreetmap.josm.io.FileImporter;
@@ -30,15 +29,10 @@ public class SqlScriptImporter extends FileImporter {
 
     @Override
     public void importData(final File file, final ProgressMonitor progressMonitor) {
-        String sqlScript;
-        try {
-            sqlScript = readFile(file, Charset.forName("UTF-8"));
-        } catch (final IOException e) {
-            throw new IllegalArgumentException("Could not read file into string", e);
-        }
+
         DataSet data = new DataSet();
         try {
-            SqlScriptReader.read(data, sqlScript);
+            SqlScriptReader.readSubroutes(data, file);
         } catch (IOException | SQLException e) {
             throw new IllegalArgumentException("could not parse sql script", e);
         }
@@ -53,8 +47,5 @@ public class SqlScriptImporter extends FileImporter {
         });
     }
 
-    static String readFile(File file, Charset encoding) throws IOException {
-        byte[] encoded = Files.readAllBytes(Paths.get(file.getCanonicalPath()));
-        return new String(encoded, encoding);
-    }
+
 }

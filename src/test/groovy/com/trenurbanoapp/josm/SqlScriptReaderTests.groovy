@@ -4,7 +4,6 @@ import org.junit.Test
 import org.openstreetmap.josm.Main
 import org.openstreetmap.josm.data.Preferences
 import org.openstreetmap.josm.data.osm.DataSet
-import org.openstreetmap.josm.io.OsmReader
 import spock.lang.Specification
 
 /**
@@ -17,7 +16,7 @@ class SqlScriptReaderTests extends Specification {
         setup:
         Main.pref = new Preferences()
         DataSet data = new DataSet();
-        SqlScriptReader.read(data, sql)
+        SqlScriptReader.readSubroutes(data, sql)
 
         expect:
         data.getWays().size() > 0

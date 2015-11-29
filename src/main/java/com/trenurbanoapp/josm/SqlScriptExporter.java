@@ -21,8 +21,6 @@ public class SqlScriptExporter extends FileExporter {
 
     /**
      * Constructs a new {@code FileExporter}.
-     *
-     * @param filter The extension file filter
      */
     public SqlScriptExporter() {
         super(FILE_FILTER);
@@ -39,18 +37,8 @@ public class SqlScriptExporter extends FileExporter {
         }
 
         DataSet data = ((OsmDataLayer) layer).data;
-        FileWriter writer = null;
-        try {
-            writer = new FileWriter(file);
-            SqlScriptWriter.write(data, writer);
-        } finally {
-            if (writer != null) {
-                writer.close();
-            }
-        }
-
+        SqlScriptWriter.write(data, file);
         ((OsmDataLayer) layer).onPostSaveToFile();
-
 
     }
 
