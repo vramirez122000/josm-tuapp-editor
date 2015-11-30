@@ -104,8 +104,10 @@ public class SqlScriptReader {
         m = directionPattern.matcher(line);
         if (m.find()) {
             keys.put("direction", m.group(1));
+            keys.put("name", m.group(1));
         } else {
             keys.put("direction", "");
+            keys.put("name", "");
         }
 
         Relation rel = new Relation();
@@ -154,7 +156,7 @@ public class SqlScriptReader {
 
                     m = descriptioPattern.matcher(line);
                     if (m.find()) {
-                        keys.put("descriptio", Utils.firstNonNull(m.group(1), ""));
+                        keys.put("name", Utils.firstNonNull(m.group(1), ""));
                     }
 
                     m = amaIdPattern.matcher(line);

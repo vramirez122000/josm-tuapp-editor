@@ -87,7 +87,7 @@ public class SqlScriptWriter {
                     gid = String.valueOf(n.getId());
                 }
                 String routes = n.getKeys().get("routes");
-                String descriptio = n.getKeys().get("descriptio");
+                String descriptio = n.getKeys().get("name");
                 String amaId = n.getKeys().get("ama_id");
 
                 out.printf("delete from ref.stop where gid = %s;", gid);
@@ -139,7 +139,7 @@ public class SqlScriptWriter {
                 Long stopGid = member.getUniqueId();
                 out.printf("(%s, %s, %s, %s)", stopGid, i, quoted(route), nullOrQuoted(direction));
             }
-            out.println(",");
+            out.println(";");
         }
         out.flush();
     }
