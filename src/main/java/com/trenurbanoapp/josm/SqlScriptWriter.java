@@ -163,6 +163,6 @@ public class SqlScriptWriter {
     }
     
     private static String quoted(String s) {
-        return String.format("'%s'", Utils.firstNonNull(s, "").replaceAll("'", "''"));
+        return String.format("'%s'", Utils.firstNonNull(s, "").replaceAll("'(?!')", "''"));
     }
 }
