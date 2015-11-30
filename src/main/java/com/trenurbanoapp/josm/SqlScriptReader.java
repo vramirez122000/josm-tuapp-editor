@@ -122,7 +122,11 @@ public class SqlScriptReader {
             Node node = Utils.find(data.getNodes(), new Predicate<Node>() {
                 @Override
                 public boolean evaluate(Node object) {
-                    return Long.parseLong(object.getKeys().get("gid")) == stopGid;
+                    if(!object.getKeys().containsKey("gid")) {
+                        return false;
+                    }
+                    final String gid = object.getKeys().get("gid");
+                    return Long.parseLong(gid) == stopGid;
                 }
             });
             RelationMember member = new RelationMember(String.valueOf(stopOrder), node);

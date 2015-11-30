@@ -99,9 +99,9 @@ task installPlugin(type: Copy, dependsOn: jar) {
     }
 }
 
-task runJosm(dependsOn: installPlugin) {
+/*task runJosm(dependsOn: installPlugin) {
     javaexec {
         main="-jar"
         args "lib/josm-snapshot-${josmVersion}.jar"
     }
-}
+}*/
