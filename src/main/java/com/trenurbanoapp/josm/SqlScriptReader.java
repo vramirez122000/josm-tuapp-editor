@@ -2,6 +2,7 @@ package com.trenurbanoapp.josm;
 
 import org.openstreetmap.josm.data.coor.LatLon;
 import org.openstreetmap.josm.data.osm.*;
+import org.openstreetmap.josm.tools.Predicate;
 import org.openstreetmap.josm.tools.Utils;
 import org.postgis.LineString;
 import org.postgis.Point;
@@ -13,7 +14,9 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,7 +27,7 @@ public class SqlScriptReader {
 
     public static final int WGS84 = 4326;
 
-    public static void readSubroutes(final DataSet data, File file) throws IOException, SQLException {
+    public static void read(final DataSet data, File file) throws IOException, SQLException {
 
         File stopsFile = file.getParentFile().toPath().resolve("../stops.sql").toFile();
         if (stopsFile.exists()) {
@@ -114,9 +117,15 @@ public class SqlScriptReader {
         m = relationValuesPattern.matcher(line);
         while(m.find()) {
             String[] valArray = m.group(1).split(",");
-            long stopGid = Long.parseLong(valArray[0].trim());
+            final long stopGid = Long.parseLong(valArray[0].trim());
             Integer stopOrder = Integer.parseInt(valArray[1].trim());
-            RelationMember member = new RelationMember(String.valueOf(stopOrder), data.getPrimitiveById(stopGid, OsmPrimitiveType.NODE));
+            Node node = Utils.find(data.getNodes(), new Predicate<Node>() {
+                @Override
+                public boolean evaluate(Node object) {
+                    return Long.parseLong(object.getKeys().get("gid")) == stopGid;
+                }
+            });
+            RelationMember member = new RelationMember(String.valueOf(stopOrder), node);
             rel.addMember(stopOrder, member);
         }
 
@@ -133,42 +142,54 @@ public class SqlScriptReader {
     public static void readStops(final DataSet data, File file) {
 
         forEachLine(file, new LineCallback() {
+            Set<Long> ids = new HashSet<>();
+
             @Override
             public void doWithLine(String line) throws IOException, SQLException {
                 Matcher m = pointPattern.matcher(line);
-                if (m.find()) {
-                    String ewkt = m.group(1);
-                    Point p = new Point(ewkt);
-                    Node n = new Node(new LatLon(p.getY(), p.getX()));
-
-                    m = stopGidPattern.matcher(line);
-                    if (m.find()) {
-                        n.setOsmId(Long.parseLong(m.group(1)), 1);
-                    }
-
-                    HashMap<String, String> keys = new HashMap<>();
-                    keys.put("highway", "bus_stop");
-
-                    m = routesPattern.matcher(line);
-                    if (m.find()) {
-                        keys.put("routes", Utils.firstNonNull(m.group(1), ""));
-                    }
-
-                    m = descriptioPattern.matcher(line);
-                    if (m.find()) {
-                        keys.put("name", Utils.firstNonNull(m.group(1), ""));
-                    }
-
-                    m = amaIdPattern.matcher(line);
-                    if (m.find()) {
-                        keys.put("ama_id", Utils.firstNonNull(m.group(1), ""));
-                    }
-
-                    n.setKeys(keys);
-                    data.addPrimitive(n);
-
-
+                if (!m.find()) {
+                    return;
                 }
+
+                String ewkt = m.group(1);
+                Point p = new Point(ewkt);
+                Node n = new Node(new LatLon(p.getY(), p.getX()));
+
+                m = stopGidPattern.matcher(line);
+                if (!m.find()) {
+                    return;
+                }
+                long stopGid = Long.parseLong(m.group(1));
+                if(ids.contains(stopGid)) {
+                    throw new IllegalArgumentException("Non unique gid values");
+                } else {
+                    ids.add(stopGid);
+                }
+
+                //set the OSM ID in order to signal that data has been saved previously
+                n.setOsmId(stopGid, 1);
+
+                HashMap<String, String> keys = new HashMap<>();
+                keys.put("highway", "bus_stop");
+                keys.put("gid", String.valueOf(stopGid));
+
+                m = routesPattern.matcher(line);
+                if (m.find()) {
+                    keys.put("routes", Utils.firstNonNull(m.group(1), ""));
+                }
+
+                m = descriptioPattern.matcher(line);
+                if (m.find()) {
+                    keys.put("name", Utils.firstNonNull(m.group(1), ""));
+                }
+
+                m = amaIdPattern.matcher(line);
+                if (m.find()) {
+                    keys.put("ama_id", Utils.firstNonNull(m.group(1), ""));
+                }
+
+                n.setKeys(keys);
+                data.addPrimitive(n);
             }
         });
     }

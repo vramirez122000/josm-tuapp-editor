@@ -31,6 +31,7 @@ dependencies {
     testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
 }
 
+
 jar {
     from{
         configurations.compile.findAll
@@ -61,17 +62,27 @@ jar {
 import de.undercouch.gradle.tasks.download.Download
 
 task downloadJosm(type: Download) {
+    description 'Downloads JOSM jar file to lib directory. JOSM is a required dependency for compilation'
+    onlyIf {
+        def josmJar = new File("lib/josm-snapshot-${josmVersion}.jar")
+        !josmJar.exists()
+    }
     def folder = new File( 'lib' )
-    if( !folder.exists() ) {
-        folder.mkdirs()
+    doFirst {
+        if( !folder.exists() ) {
+            folder.mkdirs()
+        }
     }
     src "http://josm.openstreetmap.de/${josmLocation}/josm-snapshot-${josmVersion}.jar"
     dest folder
 }
 
+compileJava.dependsOn(downloadJosm)
+
 import org.gradle.internal.os.OperatingSystem
 
 task installPlugin(type: Copy, dependsOn: jar) {
+    description 'After building the distribution jar file, copy the file to the JOSM plugins directory'
     def destStr
     if(OperatingSystem.current().isMacOsX()) {
         destStr = "${System.getProperty('user.home')}/Library/JOSM/plugins"

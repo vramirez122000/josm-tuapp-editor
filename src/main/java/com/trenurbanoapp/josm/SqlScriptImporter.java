@@ -6,11 +6,9 @@ import org.openstreetmap.josm.gui.progress.ProgressMonitor;
 import org.openstreetmap.josm.gui.util.GuiHelper;
 import org.openstreetmap.josm.io.FileImporter;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.SQLException;
 
 /**
@@ -32,7 +30,9 @@ public class SqlScriptImporter extends FileImporter {
 
         DataSet data = new DataSet();
         try {
-            SqlScriptReader.readSubroutes(data, file);
+            SqlScriptReader.read(data, file);
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(Main.parent, e, "Data Inconsistency Error", JOptionPane.ERROR_MESSAGE);
         } catch (IOException | SQLException e) {
             throw new IllegalArgumentException("could not parse sql script", e);
         }

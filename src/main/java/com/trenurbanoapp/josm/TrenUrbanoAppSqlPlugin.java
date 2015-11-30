@@ -1,6 +1,7 @@
 package com.trenurbanoapp.josm;
 
 import org.openstreetmap.josm.actions.ExtensionFileFilter;
+import org.openstreetmap.josm.data.imagery.ImageryLayerInfo;
 import org.openstreetmap.josm.plugins.Plugin;
 import org.openstreetmap.josm.plugins.PluginInformation;
 
@@ -24,5 +25,10 @@ public class TrenUrbanoAppSqlPlugin extends Plugin {
 
         sqlScriptExporter = new SqlScriptExporter();
         ExtensionFileFilter.exporters.add(this.sqlScriptExporter);
+
+
+        if(!ImageryLayerInfo.instance.getLayers().contains(PuertoRicoImagery.ArcgisOnline2010Usace)) {
+            ImageryLayerInfo.addLayer(PuertoRicoImagery.ArcgisOnline2010Usace);
+        }
     }
 }

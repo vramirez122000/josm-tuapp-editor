@@ -7,7 +7,10 @@ import org.openstreetmap.josm.tools.Utils;
 import org.postgis.LineString;
 import org.postgis.Point;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.List;
 
@@ -64,7 +67,7 @@ public class SqlScriptWriter {
     public static final Predicate<Node> STOP_PREDICATE = new Predicate<Node>() {
         @Override
         public boolean evaluate(Node object) {
-            return object.hasTag("highway", "bus_stop");
+            return !object.isDeleted() && object.hasTag("highway", "bus_stop");
         }
     };
     private static void writeStops(DataSet dataSet, File file) throws IOException{
@@ -83,8 +86,8 @@ public class SqlScriptWriter {
                 Point p = new Point(latLon.lon(), latLon.lat());
                 p.setSrid(WGS84);
                 String gid = n.getKeys().get("gid");
-                if(gid == null) {
-                    gid = String.valueOf(n.getId());
+                if(gid == null || gid.trim().length() == 0) {
+                    throw new IllegalArgumentException("Please assign a unique 'gid' value to newly added stops");
                 }
                 String routes = n.getKeys().get("routes");
                 String descriptio = n.getKeys().get("name");
@@ -136,7 +139,14 @@ public class SqlScriptWriter {
                     continue;
                 }
 
-                Long stopGid = member.getUniqueId();
+                long stopGid;
+                long osmId = member.getUniqueId();
+                if (osmId > 0) {
+                    stopGid = osmId;
+                } else {
+                    stopGid = Long.parseLong(member.getNode().getKeys().get("gid"));
+                }
+
                 out.printf("(%s, %s, %s, %s)", stopGid, i, quoted(route), nullOrQuoted(direction));
             }
             out.println(";");
