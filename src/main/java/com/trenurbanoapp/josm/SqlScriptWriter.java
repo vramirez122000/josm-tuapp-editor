@@ -127,7 +127,7 @@ public class SqlScriptWriter {
                 out.printf("delete from ref.subroute_stop where route = %s and direction = %s; ",
                         quoted(route),
                         nullOrQuoted(direction));
-                out.print("insert into ref.subroute_stop (stop, stop_order, direction, stop) values ");
+                out.print("insert into ref.subroute_stop (stop, stop_order, route, direction) values ");
             }
             for (int i = 0; i < members.size(); i++) {
                 if(i > 0) {
