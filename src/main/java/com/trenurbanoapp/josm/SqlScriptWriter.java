@@ -11,6 +11,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.List;
 
@@ -46,7 +48,7 @@ public class SqlScriptWriter {
             List<Node> nodes = way.getNodes();
             for (int i = 0, nodesSize = nodes.size(); i < nodesSize; i++) {
                 LatLon latLon = nodes.get(i).getCoor();
-                points[i] = new Point(latLon.lon(), latLon.lat());
+                points[i] = new Point(round(latLon.lon(), 6), round(latLon.lat(), 6));
             }
 
             LineString line = new LineString(points);
@@ -62,6 +64,7 @@ public class SqlScriptWriter {
         }
         out.flush();
     }
+
 
 
     public static final Predicate<Node> STOP_PREDICATE = new Predicate<Node>() {
@@ -83,7 +86,7 @@ public class SqlScriptWriter {
         try (PrintWriter out = new PrintWriter(new FileWriter(stopsFile))) {
             for (Node n : Utils.filter(dataSet.getNodes(), STOP_PREDICATE)) {
                 LatLon latLon = n.getCoor();
-                Point p = new Point(latLon.lon(), latLon.lat());
+                Point p = new Point(round(latLon.lon(), 6), round(latLon.lat(), 6));
                 p.setSrid(WGS84);
                 String gid = n.getKeys().get("gid");
                 if(gid == null || gid.trim().length() == 0) {
@@ -165,4 +168,9 @@ public class SqlScriptWriter {
     private static String quoted(String s) {
         return String.format("'%s'", Utils.firstNonNull(s, "").replaceAll("'(?!')", "''"));
     }
+
+    private static double round(double d, int places) {
+        return new BigDecimal(d).setScale(places, RoundingMode.HALF_EVEN).doubleValue();
+    }
+
 }

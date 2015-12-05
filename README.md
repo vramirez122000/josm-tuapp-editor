@@ -1,24 +1,11 @@
 # josm-tuapp-sql
 
-A plugin for editing data for Tren Urbano App
+A plugin for editing data for Tren Urbano App subroutes, stops and the relation between these.
 
-## Build
+## Build, install and run JOSM
 
-Download josm
 ```
-gradle downloadJosm
-```
-Build
-```
-gradle clean build
-```
-
-
-## Run
-
-Install
-```
-gradle installPlugin
+./gradlew runJosm
 ```
 
 And Josm should pick up the plugin at startup.
@@ -27,4 +14,9 @@ To Activate it, Josm Preferences > Plugins > Search josm-tuapp-editor > Click th
 
 To save a file as Tren Urbano App SQL, select a layer, Save As -> Tren Urbano App SQL Script (*.sql)
 
-To open a `*.sql` file, File > Open, select the file
+To open a subroute `*.sql` file, File > Open, select the file
+
+## Aerial Imagery
+
+This plugin installs an Imagery source called '2010 Puerto Rico USACE' for tracing
+
