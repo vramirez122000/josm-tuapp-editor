@@ -162,11 +162,12 @@ public class SqlScriptWriter {
             return "NULL";
         }
 
-        return String.format("'%s'", s.replaceAll("'", "''"));
+        return String.format("'%s'", s.replaceAll("'(?!')", "''"));
     }
     
     private static String quoted(String s) {
-        return String.format("'%s'", Utils.firstNonNull(s, "").replaceAll("'(?!')", "''"));
+        String escaped = Utils.firstNonNull(s, "").replaceAll("'(?!')", "''");
+        return String.format("'%s'", escaped);
     }
 
     private static double round(double d, int places) {

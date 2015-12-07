@@ -184,7 +184,7 @@ public class SqlScriptReader {
 
                 m = descriptioPattern.matcher(line);
                 if (m.find()) {
-                    keys.put("name", Utils.firstNonNull(m.group(1), ""));
+                    keys.put("name", Utils.firstNonNull(m.group(1), "").replaceAll("''", "'"));
                 }
 
                 m = amaIdPattern.matcher(line);
