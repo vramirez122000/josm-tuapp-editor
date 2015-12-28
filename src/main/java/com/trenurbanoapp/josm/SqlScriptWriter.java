@@ -56,9 +56,9 @@ public class SqlScriptWriter {
             String route = way.getKeys().get("route");
             String direction = way.getKeys().get("direction");
 
-            out.printf("delete from ref.subroute_new where route = %s and direction = %s;", quoted(route), nullOrQuoted(direction));
+            out.printf("delete from ref.subroute where route = %s and direction = %s;", quoted(route), nullOrQuoted(direction));
             out.printf("with line_tmp as (select ST_Transform(ST_GeomFromEWKT(%s), 32161) geom) ", quoted(line.toString()));
-            out.printf("insert into ref.subroute_new(route, direction, geom) select %s,%s, ST_AddMeasure(line_tmp.geom, 0, ST_Length(line_tmp.geom)) from line_tmp;",
+            out.printf("insert into ref.subroute(route, direction, geom) select %s,%s, ST_AddMeasure(line_tmp.geom, 0, ST_Length(line_tmp.geom)) from line_tmp;",
                     quoted(route), nullOrQuoted(direction));
             out.println();
         }

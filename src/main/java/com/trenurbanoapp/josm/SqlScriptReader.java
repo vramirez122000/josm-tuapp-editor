@@ -45,7 +45,7 @@ public class SqlScriptReader {
     }
 
 
-    private static Pattern subroutePattern = Pattern.compile("ref\\.subroute_new\\s+", Pattern.CASE_INSENSITIVE);
+    private static Pattern subroutePattern = Pattern.compile("ref\\.subroute\\s+", Pattern.CASE_INSENSITIVE);
     private static Pattern lineStringPattern = Pattern.compile("ST_GeomFromEWKT\\s*\\(\\s*'(SRID=4326;LINESTRING[^']*)", Pattern.CASE_INSENSITIVE);
     private static Pattern routeIdPattern = Pattern.compile("route\\s*=\\s*'([^']*)", Pattern.CASE_INSENSITIVE);
     private static Pattern directionPattern = Pattern.compile("direction\\s*=\\s*(?:NULL|'([^']*))", Pattern.CASE_INSENSITIVE);
