@@ -20,11 +20,12 @@ public class TrenUrbanoAppSqlPlugin extends Plugin {
     public TrenUrbanoAppSqlPlugin(PluginInformation info) {
         super(info);
         sqlScriptImporter = new SqlScriptImporter();
-        ExtensionFileFilter.importers.add(this.sqlScriptImporter);
+
+        ExtensionFileFilter.addImporter(this.sqlScriptImporter);
         ExtensionFileFilter.updateAllFormatsImporter();
 
         sqlScriptExporter = new SqlScriptExporter();
-        ExtensionFileFilter.exporters.add(this.sqlScriptExporter);
+        ExtensionFileFilter.addExporter(this.sqlScriptExporter);
 
 
         if(!ImageryLayerInfo.instance.getLayers().contains(PuertoRicoImagery.ArcgisOnline2010Usace)) {
