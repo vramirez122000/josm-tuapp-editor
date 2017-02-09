@@ -2,7 +2,6 @@ package com.trenurbanoapp.josm;
 
 import org.openstreetmap.josm.data.coor.LatLon;
 import org.openstreetmap.josm.data.osm.*;
-import org.openstreetmap.josm.tools.Predicate;
 import org.openstreetmap.josm.tools.Utils;
 import org.postgis.LineString;
 import org.postgis.Point;
@@ -119,15 +118,12 @@ public class SqlScriptReader {
             String[] valArray = m.group(1).split(",");
             final long stopGid = Long.parseLong(valArray[0].trim());
             Integer stopOrder = Integer.parseInt(valArray[1].trim());
-            Node node = Utils.find(data.getNodes(), new Predicate<Node>() {
-                @Override
-                public boolean evaluate(Node object) {
-                    if(!object.getKeys().containsKey("gid")) {
-                        return false;
-                    }
-                    final String gid = object.getKeys().get("gid");
-                    return Long.parseLong(gid) == stopGid;
+            Node node = Utils.find(data.getNodes(), object -> {
+                if(!object.getKeys().containsKey("gid")) {
+                    return false;
                 }
+                final String gid = object.getKeys().get("gid");
+                return Long.parseLong(gid) == stopGid;
             });
             RelationMember member = new RelationMember(String.valueOf(stopOrder), node);
             rel.addMember(stopOrder, member);

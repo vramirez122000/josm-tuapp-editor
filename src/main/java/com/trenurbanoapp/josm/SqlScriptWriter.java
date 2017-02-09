@@ -2,7 +2,7 @@ package com.trenurbanoapp.josm;
 
 import org.openstreetmap.josm.data.coor.LatLon;
 import org.openstreetmap.josm.data.osm.*;
-import org.openstreetmap.josm.tools.Predicate;
+import java.util.function.Predicate;
 import org.openstreetmap.josm.tools.Utils;
 import org.postgis.LineString;
 import org.postgis.Point;
@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by victor on 27/11/15.
@@ -66,15 +67,14 @@ public class SqlScriptWriter {
     }
 
 
+    private static final Predicate<Node> STOP_PREDICATE = node ->
+            !node.isDeleted() && node.hasTag("highway", "bus_stop");
 
-    public static final Predicate<Node> STOP_PREDICATE = new Predicate<Node>() {
-        @Override
-        public boolean evaluate(Node object) {
-            return !object.isDeleted() && object.hasTag("highway", "bus_stop");
-        }
-    };
     private static void writeStops(DataSet dataSet, File file) throws IOException{
-        if (!Utils.exists(dataSet.getNodes(), STOP_PREDICATE)) {
+        List<Node> stops = dataSet.getNodes().stream()
+                .filter(STOP_PREDICATE)
+                .collect(Collectors.toList());
+        if (stops.isEmpty()) {
             return;
         }
 
@@ -84,7 +84,7 @@ public class SqlScriptWriter {
         }
 
         try (PrintWriter out = new PrintWriter(new FileWriter(stopsFile))) {
-            for (Node n : Utils.filter(dataSet.getNodes(), STOP_PREDICATE)) {
+            for (Node n : stops) {
                 LatLon latLon = n.getCoor();
                 Point p = new Point(round(latLon.lon(), 6), round(latLon.lat(), 6));
                 p.setSrid(WGS84);

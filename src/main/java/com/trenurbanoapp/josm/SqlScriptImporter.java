@@ -1,6 +1,7 @@
 package com.trenurbanoapp.josm;
 
 import org.openstreetmap.josm.Main;
+import org.openstreetmap.josm.data.ProjectionBounds;
 import org.openstreetmap.josm.data.osm.DataSet;
 import org.openstreetmap.josm.gui.progress.ProgressMonitor;
 import org.openstreetmap.josm.gui.util.GuiHelper;
@@ -38,12 +39,9 @@ public class SqlScriptImporter extends FileImporter {
         }
         this.layer = new TrenUrbanoAppLayer(data, "TUAPP: " + file.getName(), file);
 
-        GuiHelper.runInEDT(new Runnable() {
-            @Override
-            public void run() {
-                Main.main.addLayer(SqlScriptImporter.this.layer);
-                System.out.println("Added layer.");
-            }
+        GuiHelper.runInEDT(() -> {
+            Main.main.addLayer(SqlScriptImporter.this.layer, (ProjectionBounds) null);
+            System.out.println("Added layer.");
         });
     }
 
