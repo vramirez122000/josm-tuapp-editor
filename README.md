@@ -18,5 +18,13 @@ To open a subroute `*.sql` file, File > Open, select the file
 
 ## Aerial Imagery
 
-This plugin installs an Imagery source called '2010 Puerto Rico USACE' for tracing
+This plugin automatically installs an Imagery source called '2010 Puerto Rico USACE' for tracing
 
+## Project Dependencies
+
+Java 8 Development Kit
+
+All other dependencies are automatically fetched from the Maven Central Repository:
+
+* PostgreSQL JDBC Driver 
+* PostGIS Client JDBC Wrapper
