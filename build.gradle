@@ -1,111 +1,43 @@
 plugins {
-    id 'de.undercouch.download' version '3.2.0'
+    id "org.openstreetmap.josm.gradle.plugin" version "0.1.6"
 }
 
+apply plugin: 'eclipse'
+apply plugin: 'idea'
 apply plugin: 'java'
 apply plugin: 'groovy'
 
 group = 'com.trenurbanoapp'
 version = '0.0.2'
 
-// Change JOSM version (if needed) before you build
-def josmVersion = '11526'
-def josmLocation = 'download'
+josm {
+  josmCompileVersion = '11526'
+  jarName = "${project.name}.jar"
+  manifest.author = "Víctor Ramírez"
+  manifest.canLoadAtRuntime = false
+  manifest.description = "Allows you to edit Tren Urbano App SQL Scripts"
+  manifest.iconPath = "images/preferences/geojson.png"
+  manifest.mainClass = "com.trenurbanoapp.josm.TrenUrbanoAppSqlPlugin"
+  manifest.minJosmVersion = '11526'
+  manifest.website = new URL('http://trenurbanoapp.com')
+}
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
-    flatDir {
-        dirs 'lib'
-    }
 }
 
 dependencies {
-    // Josm is not on Maven Central
-    compile name: "josm-snapshot-${josmVersion}"
-    compile("org.postgis:postgis-jdbc:1.3.3") {
+    packIntoJar("org.postgis:postgis-jdbc:1.3.3") {
         exclude module: 'postgresql'
     }
-    compile 'org.postgresql:postgresql:9.4.1212'
+    packIntoJar 'org.postgresql:postgresql:9.4.1212'
 }
-
 
 jar {
-    from {
-        configurations.compile.findAll
-        {
-            it.name != "josm-snapshot-${josmVersion}.jar"
-        }.collect {
-            it.isDirectory() ? it : zipTree(it).matching {
-                exclude {
-                    it.path.contains('META-INF') && (it.path.endsWith('.SF') || it.path.endsWith('.DSA') || it.path.endsWith('.RSA'))
-                }
-            }
-        }
-    }
-    manifest {
-        attributes("Author": "Víctor Ramírez",
-                "Plugin-Class": "com.trenurbanoapp.josm.TrenUrbanoAppSqlPlugin",
-                "Plugin-Date": "2017-02-02T23:12:29.582966Z",
-                "Plugin-Description": "Allows you to edit Tren Urbano App SQL Scripts",
-                "Plugin-Icon": "images/preferences/geojson.png",
-                "Plugin-Link": "http://trenurbanoapp.com",
-                "Plugin-Mainversion": "${josmVersion}",
-                "Plugin-Version": "31243",
-                "Plugin-Canloadatruntime": "false",
-        )
-    }
-}
-
-import de.undercouch.gradle.tasks.download.Download
-
-task downloadJosm(type: Download) {
-    description 'Downloads JOSM jar file to lib directory. JOSM is a required dependency for compilation'
-    onlyIf {
-        def josmJar = new File("lib/josm-snapshot-${josmVersion}.jar")
-        !josmJar.exists()
-    }
-    def folder = new File('lib')
-    doFirst {
-        if (!folder.exists()) {
-            folder.mkdirs()
-        }
-    }
-    src "http://josm.openstreetmap.de/${josmLocation}/josm-snapshot-${josmVersion}.jar"
-    dest folder
-}
-
-compileJava.dependsOn(downloadJosm)
-
-import org.gradle.internal.os.OperatingSystem
-
-task installPlugin(type: Copy, dependsOn: jar) {
-    description 'After building the distribution jar file, copy the file to the JOSM plugins directory'
-    def destStr
-    if (OperatingSystem.current().isMacOsX()) {
-        destStr = "${System.getProperty('user.home')}/Library/JOSM/plugins"
-    } else if (OperatingSystem.current().isWindows()) {
-        destStr = "${System.getenv()['APPDATA']}/JOSM/plugins"
-    } else {
-        destStr = "${System.getProperty('user.home')}/.josm/plugins"
-    }
-    println(jar.archivePath)
-    from jar.archivePath
-    into destStr
-    rename {
-        "${project.name}.jar"
-    }
-}
-
-task runJosm() {
-    dependsOn installPlugin
-    doLast {
-        javaexec {
-            main = "-jar"
-            args "lib/josm-snapshot-${josmVersion}.jar"
-        }
-    }
-
+  exclude 'META-INF/**/*'
+  exclude 'examples'
+  exclude 'examples/**/*'
 }
