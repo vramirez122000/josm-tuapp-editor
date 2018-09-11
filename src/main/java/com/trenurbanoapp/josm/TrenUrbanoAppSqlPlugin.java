@@ -27,9 +27,5 @@ public class TrenUrbanoAppSqlPlugin extends Plugin {
         sqlScriptExporter = new SqlScriptExporter();
         ExtensionFileFilter.addExporter(this.sqlScriptExporter);
 
-
-        if(!ImageryLayerInfo.instance.getLayers().contains(PuertoRicoImagery.ArcgisOnline2010Usace)) {
-            ImageryLayerInfo.addLayer(PuertoRicoImagery.ArcgisOnline2010Usace);
-        }
     }
 }

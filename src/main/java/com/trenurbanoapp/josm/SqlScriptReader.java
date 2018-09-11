@@ -26,20 +26,16 @@ public class SqlScriptReader {
 
     public static final int WGS84 = 4326;
 
-    public static void read(final DataSet data, File file) throws IOException, SQLException {
+    public static void read(final DataSet data, File file) throws SQLException {
 
         File stopsFile = file.getParentFile().toPath().resolve("../stops.sql").toFile();
         if (stopsFile.exists()) {
             readStops(data, stopsFile);
         }
 
-        forEachLine(file, new LineCallback() {
-            @Override
-            public void doWithLine(String line) throws IOException, SQLException {
-                readSubroute(data, line);
-                readSubrouteStopRelation(data, line);
-            }
-
+        forEachLine(file, line -> {
+            readSubroute(data, line);
+            readSubrouteStopRelation(data, line);
         });
     }
 

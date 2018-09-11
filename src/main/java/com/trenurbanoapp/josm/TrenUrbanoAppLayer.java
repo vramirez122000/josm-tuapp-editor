@@ -1,6 +1,7 @@
 package com.trenurbanoapp.josm;
 
 import org.openstreetmap.josm.data.osm.DataSet;
+import org.openstreetmap.josm.data.osm.UploadPolicy;
 import org.openstreetmap.josm.gui.layer.OsmDataLayer;
 
 import java.io.File;
@@ -19,6 +20,7 @@ public class TrenUrbanoAppLayer extends OsmDataLayer {
     public TrenUrbanoAppLayer(DataSet data, String name, File associatedFile) {
         super(data, name, associatedFile);
         setUploadDiscouraged(true);
+        this.data.setUploadPolicy(UploadPolicy.BLOCKED);
     }
 
     @Override

@@ -9,7 +9,7 @@ group = 'com.trenurbanoapp'
 version = '0.0.2'
 
 // Change JOSM version (if needed) before you build
-def josmVersion = '11526'
+def josmVersion = '14178'
 def josmLocation = 'download'
 
 sourceCompatibility = 1.8

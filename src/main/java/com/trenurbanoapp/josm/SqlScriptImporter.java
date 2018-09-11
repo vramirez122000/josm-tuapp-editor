@@ -1,23 +1,22 @@
 package com.trenurbanoapp.josm;
 
-import org.openstreetmap.josm.Main;
-import org.openstreetmap.josm.data.ProjectionBounds;
 import org.openstreetmap.josm.data.osm.DataSet;
+import org.openstreetmap.josm.gui.MainApplication;
+import org.openstreetmap.josm.gui.io.importexport.FileImporter;
 import org.openstreetmap.josm.gui.progress.ProgressMonitor;
 import org.openstreetmap.josm.gui.util.GuiHelper;
-import org.openstreetmap.josm.io.FileImporter;
+import org.openstreetmap.josm.tools.Logging;
 
 import javax.swing.*;
 import java.io.File;
-import java.io.IOException;
-import java.sql.SQLException;
+
+import static org.openstreetmap.josm.tools.I18n.tr;
 
 /**
  * Created by victor on 27/11/15.
  */
 public class SqlScriptImporter extends FileImporter {
 
-    private TrenUrbanoAppLayer layer;
 
     /**
      * Constructs a new {@code FileImporter} with the given extension file filter.
@@ -29,20 +28,37 @@ public class SqlScriptImporter extends FileImporter {
     @Override
     public void importData(final File file, final ProgressMonitor progressMonitor) {
 
+        progressMonitor.beginTask(tr("Loading Tren Urbano App SQL file..."));
+        progressMonitor.setTicksCount(2);
+        Logging.info("Parsing SQL: " + file.getAbsolutePath());
+
         DataSet data = new DataSet();
         try {
             SqlScriptReader.read(data, file);
-        } catch (IllegalArgumentException e) {
-            JOptionPane.showMessageDialog(Main.parent, e, "Data Inconsistency Error", JOptionPane.ERROR_MESSAGE);
-        } catch (IOException | SQLException e) {
-            throw new IllegalArgumentException("could not parse sql script", e);
-        }
-        this.layer = new TrenUrbanoAppLayer(data, "TUAPP: " + file.getName(), file);
+            progressMonitor.worked(1);
 
-        GuiHelper.runInEDT(() -> {
-            Main.main.addLayer(SqlScriptImporter.this.layer, (ProjectionBounds) null);
+
+            TrenUrbanoAppLayer layer = new TrenUrbanoAppLayer(data, "TUAPP: " + file.getName(), file);
+            MainApplication.getLayerManager().addLayer(layer);
+            
             System.out.println("Added layer.");
-        });
+
+        } catch (Exception e) {
+
+            Logging.error("Error while reading sql file!");
+            Logging.error(e);
+            GuiHelper.runInEDT(() -> {
+                JOptionPane.showMessageDialog(null,
+                        tr("Error loading sql file {0}", file.getAbsolutePath()),
+                        tr("Error"),
+                        JOptionPane.WARNING_MESSAGE
+                ) ;
+            });
+
+        } finally {
+            progressMonitor.finishTask();
+        }
+
     }
 
 

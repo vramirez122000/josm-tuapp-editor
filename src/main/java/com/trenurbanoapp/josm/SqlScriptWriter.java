@@ -32,7 +32,7 @@ public class SqlScriptWriter {
         }
     }
 
-    private static void writeSubroutes(DataSet dataSet, PrintWriter out) throws IOException {
+    private static void writeSubroutes(DataSet dataSet, PrintWriter out) {
 
         Collection<Way> ways = dataSet.getSelectedWays();
         if (ways.isEmpty()) {

@@ -1,15 +1,14 @@
 package com.trenurbanoapp.josm;
 
-import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.actions.ExtensionFileFilter;
 import org.openstreetmap.josm.data.osm.DataSet;
+import org.openstreetmap.josm.gui.MainApplication;
+import org.openstreetmap.josm.gui.io.importexport.FileExporter;
 import org.openstreetmap.josm.gui.layer.Layer;
 import org.openstreetmap.josm.gui.layer.OsmDataLayer;
-import org.openstreetmap.josm.io.FileExporter;
 
 import javax.swing.*;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 
 import static org.openstreetmap.josm.tools.I18n.tr;
@@ -42,7 +41,7 @@ public class SqlScriptExporter extends FileExporter {
         try {
             SqlScriptWriter.write(data, file);
         } catch (IllegalArgumentException e) {
-            JOptionPane.showMessageDialog(Main.parent, tr(e.getMessage()), tr("Error saving file"), JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(MainApplication.getMainFrame(), tr(e.getMessage()), tr("Error saving file"), JOptionPane.ERROR_MESSAGE);
         }
         ((OsmDataLayer) layer).onPostSaveToFile();
 
